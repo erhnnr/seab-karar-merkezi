@@ -1,46 +1,35 @@
 import streamlit as st
-import pandas as pd
+import sympy as sp
 
-st.set_page_config(layout="wide")
-if "audit_log" not in st.session_state: st.session_state.audit_log = []
+# --- ARCHITECTURE CORE ---
+def run_math_module():
+    st.subheader("🔢 Sembolik Matematik Motoru")
+    expr = st.text_input("Denklem:", "x**2 - 4")
+    if st.button("Çöz"):
+        try:
+            x = sp.symbols('x')
+            sol = sp.solve(expr, x)
+            st.latex(f"S = {sp.latex(sol)}")
+        except: st.error("Denklem formatını kontrol edin.")
 
-st.title("🌐 Universal Decision Engine")
+def run_physics_module():
+    st.subheader("⚛️ Fiziksel Dinamikler")
+    # Sabitler modülü (Faz 1.2 için hazırlık)
+    g = 9.81 
+    m = st.number_input("Kütle (kg):", value=1.0)
+    if st.button("Ağırlık Hesapla (G=m*g)"):
+        st.write(f"### Ağırlık: ${m*g:.2f} \, \text{N}$")
 
-tab1, tab2 = st.tabs(["🔢 İşlemler", "📊 Analiz"])
+# --- MAIN ENGINE (SYSTEM ARCHITECT) ---
+st.set_page_config(page_title="Knowledge OS", layout="wide")
+st.title("🏗️ Knowledge OS: Core Architecture")
 
-with tab1:
-    alan = st.selectbox("Alan Seç:", ["Matematik", "Fizik", "Tıp"])
-    
-    # Her disiplin için özel girdi mantığı
-    if alan == "Matematik":
-        girdi = st.text_input("Formül (örn: 2*5):")
-        if st.button("Hesapla"):
-            try:
-                sonuc = eval(girdi)
-                st.session_state.audit_log.append({"Alan": alan, "İşlem": girdi, "Sonuç": sonuc})
-                st.success(f"Sonuç: {sonuc}")
-            except: st.error("Hatalı formül.")
-            
-    elif alan == "Fizik":
-        girdi = st.text_input("Kütle ve İvme gir (örn: 10,2):")
-        if st.button("Kuvvet Hesapla"):
-            try:
-                m, a = map(float, girdi.split(','))
-                sonuc = m * a
-                st.session_state.audit_log.append({"Alan": alan, "İşlem": f"{m}kg * {a}m/s2", "Sonuç": f"{sonuc} N"})
-                st.success(f"Kuvvet: {sonuc} Newton")
-            except: st.error("Format: 10,2 şeklinde giriniz.")
-            
-    elif alan == "Tıp":
-        girdi = st.text_area("Tıbbi notunuz:")
-        if st.button("Notu Kaydet"):
-            st.session_state.audit_log.append({"Alan": alan, "İşlem": "Not", "Sonuç": girdi})
-            st.info("Not sisteme eklendi.")
+# Sistem Mimarisi: Modül Seçici
+module = st.sidebar.selectbox("Modül Seçiniz:", ["Matematik", "Fizik", "Tıp (Geliştiriliyor)"])
 
-with tab2:
-    if st.session_state.audit_log:
-        df = pd.DataFrame(st.session_state.audit_log)
-        st.bar_chart(df['Alan'].value_counts())
-        st.dataframe(df)
-    else:
-        st.write("Henüz veri yok.")
+if module == "Matematik":
+    run_math_module()
+elif module == "Fizik":
+    run_physics_module()
+else:
+    st.info("Bu modül Faz 2 kapsamında inşa ediliyor.")
