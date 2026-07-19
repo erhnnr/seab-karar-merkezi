@@ -3,7 +3,7 @@ import pandas as pd
 import requests
 from datetime import datetime
 
-# --- 1. DISIPLIN KUTUPHANELERI ---
+# --- 1. ENGINE SINIFLARI ---
 class EconEngine:
     @staticmethod
     def get_live_rate(base, target):
@@ -12,7 +12,6 @@ class EconEngine:
             response = requests.get(url).json()
             return response['rates'].get(target.upper(), 0)
         except: return 0
-
     @staticmethod
     def roi(i, r): return ((r - i) / i) * 100 if i != 0 else 0
 
@@ -20,7 +19,7 @@ class PhysicsEngine:
     @staticmethod
     def calculate_force(m, a): return m * a
 
-# --- 2. ORCHESTRATOR & LOG ---
+# --- 2. ORCHESTRATOR VE LOG ---
 if "audit_log" not in st.session_state: st.session_state.audit_log = []
 
 def log_and_solve(domain, op, params, func, *args):
@@ -33,7 +32,6 @@ def log_and_solve(domain, op, params, func, *args):
 st.title("🌐 Universal Decision Engine")
 domain = st.selectbox("Alan Seçin", ["Fizik", "Ekonomi"])
 
-# FIZIK BOLUMU
 if domain == "Fizik":
     m = st.number_input("Kütle:")
     a = st.number_input("İvme:")
@@ -41,21 +39,24 @@ if domain == "Fizik":
         res = log_and_solve("Fizik", "Kuvvet", f"m:{m},a:{a}", PhysicsEngine.calculate_force, m, a)
         st.success(f"Kuvvet: {res}")
 
-# EKONOMI BOLUMU
 elif domain == "Ekonomi":
     st.subheader("Canlı Kur")
-    base = st.text_input("Baz Birim (örn: USD):", value="USD")
-    target = st.text_input("Hedef Birim (örn: TRY):", value="TRY")
+    base = st.text_input("Baz Birim:", value="USD")
+    target = st.text_input("Hedef Birim:", value="TRY")
     if st.button("Kuru Getir"):
         rate = EconEngine.get_live_rate(base, target)
         st.info(f"Anlık Kur: {rate}")
-    
     i = st.number_input("Yatırım:")
     r = st.number_input("Dönüş:")
     if st.button("ROI Hesapla"):
         res = log_and_solve("Ekonomi", "ROI", f"i:{i},r:{r}", EconEngine.roi, i, r)
         st.success(f"ROI: %{res:.2f}")
 
-# LOG GORUNTULEME
-with st.expander("📜 Denetim Kayıtları"):
-    st.dataframe(pd.DataFrame(st.session_state.audit_log))
+# --- 4. ANALIZ RAPORU (YENI) ---
+with st.expander("📊 Operasyonel Analiz Raporu"):
+    if st.session_state.audit_log:
+        df = pd.DataFrame(st.session_state.audit_log)
+        st.write("İşlem Yoğunluğu:")
+        st.bar_chart(df['Disiplin'].value_counts())
+    else:
+        st.info("Analiz için veri bekleniyor.")
