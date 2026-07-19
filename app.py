@@ -1,44 +1,36 @@
+
 import streamlit as st
-import pandas as pd
-from datetime import datetime
 
-# --- MOTOR MANTIĞI ---
-def analyze_medical(drugs):
-    drug_list = [d.strip().lower() for d in drugs.split(",")]
-    if "warfarin" in drug_list and "aspirin" in drug_list:
-        return "BLOCK", "HIGH_RISK_BLEEDING: Majör kanama riski."
-    return "PASS", "Güvenli"
+# --- 1. DISIPLIN KUTUPHANELERI ---
+class PhysicsEngine:
+    @staticmethod
+    def calculate_force(mass, acceleration):
+        return mass * acceleration  # F = m*a
 
-# --- DASHBOARD ARAYÜZÜ ---
-st.set_page_config(page_title="SEAB Karar Merkezi", layout="wide")
-st.title("🛡️ SEAB: Operasyonel Kontrol Odası")
+class MathEngine:
+    @staticmethod
+    def solve_complex(expression):
+        return eval(expression)
 
-if 'history' not in st.session_state:
-    st.session_state.history = []
+# --- 2. ORCHESTRATOR (Yönetici) ---
+def decision_orchestrator(domain, action, params):
+    if domain == "Fizik":
+        return PhysicsEngine.calculate_force(params['m'], params['a'])
+    elif domain == "Matematik":
+        return MathEngine.solve_complex(params['expr'])
+    return "Bilinmeyen Disiplin"
 
-tab1, tab2 = st.tabs(["Analiz Terminali", "Denetim Kayıtları (Audit Log)"])
+# --- 3. ARAYUZ ---
+st.title("🌐 Universal Decision Engine")
+domain = st.selectbox("Alan Seçin", ["Fizik", "Matematik"])
 
-with tab1:
-    col1, col2 = st.columns(2)
-    with col1:
-        st.subheader("Tıbbi Analiz")
-        drugs = st.text_input("İlaçlar (Virgülle ayırın):")
-        if st.button("Tıbbi Analizi Çalıştır"):
-            status, msg = analyze_medical(drugs)
-            st.session_state.history.append({"Tarih": datetime.now().strftime("%H:%M:%S"), "Plugin": "Tıbbi", "Karar": status, "Detay": msg})
-            if status == "BLOCK": st.error(msg)
-            else: st.success("İşlem Onaylandı: " + msg)
+if domain == "Fizik":
+    m = st.number_input("Kütle (kg):")
+    a = st.number_input("İvme (m/s²):")
+    if st.button("Analiz Et"):
+        st.write(f"Sonuç (Kuvvet): {decision_orchestrator('Fizik', None, {'m':m, 'a':a})} Newton")
 
-    with col2:
-        st.subheader("Finansal Analiz")
-        lev = st.number_input("Kaldıraç:", min_value=1)
-        if st.button("Finansal Analizi Çalıştır"):
-            status = "BLOCK" if lev > 5 else "PASS"
-            msg = "Kaldıraç limiti (5x) aşıldı" if status == "BLOCK" else "İşlem Güvenli"
-            st.session_state.history.append({"Tarih": datetime.now().strftime("%H:%M:%S"), "Plugin": "Finans", "Karar": status, "Detay": msg})
-            if status == "BLOCK": st.error(msg)
-            else: st.info(msg)
-
-with tab2:
-    st.subheader("Sistem İşlem Geçmişi")
-    st.table(pd.DataFrame(st.session_state.history))
+elif domain == "Matematik":
+    expr = st.text_input("Denklem:")
+    if st.button("Çöz"):
+        st.write(f"Sonuç: {decision_orchestrator('Matematik', None, {'expr':expr})}")
