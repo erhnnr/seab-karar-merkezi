@@ -3,13 +3,11 @@ import pandas as pd
 import requests
 from datetime import datetime
 
-# --- 1. ENGINE SINIFLARI ---
+# --- 1. ENGINE ---
 class Engines:
     @staticmethod
     def calculate(domain, params):
-        # Matematik/Fizik/Tıp vs için temel hesaplayıcı
-        try:
-            return eval(params) # Çok basit ve hızlı hesaplama için
+        try: return eval(params)
         except: return "Hata"
 
     @staticmethod
@@ -19,9 +17,9 @@ class Engines:
         try:
             res = requests.get(url).json()
             return f"{res['main']['temp']}°C, {res['weather'][0]['description']}"
-        except: return "Veri alınamadı."
+        except: return "Veri yok"
 
-# --- 2. ORCHESTRATOR & LOG ---
+# --- 2. ORCHESTRATOR ---
 if "audit_log" not in st.session_state: st.session_state.audit_log = []
 
 def log(domain, op, result):
@@ -31,29 +29,36 @@ def log(domain, op, result):
 st.set_page_config(page_title="Universal Engine", layout="wide")
 st.title("🌐 Universal Decision Engine")
 
+# Öneri Motoru (5. Aşama İlk Adım)
+if len(st.session_state.audit_log) > 2:
+    df = pd.DataFrame(st.session_state.audit_log)
+    favori = df['Alan'].mode()[0]
+    st.sidebar.info(f"💡 AI Tahmini: Genelde {favori} ile ilgileniyorsun. Yine ona mı bakalım?")
+
 tab_disiplin, tab_piyasa, tab_balik, tab_analiz = st.tabs(["🔢 Disiplinler", "📈 Piyasa", "🎣 Balıkçılık", "📊 Analiz"])
 
 with tab_disiplin:
-    domain = st.selectbox("Alan Seçin", ["Matematik", "Fizik", "Tıp", "Kimya", "Ekonomi"])
-    params = st.text_input("İşlem/Parametre gir (örn: 2*2 veya 0.05*0.04):")
+    domain = st.selectbox("Alan:", ["Matematik", "Fizik", "Tıp", "Kimya", "Ekonomi"])
+    params = st.text_input("Formül:", value="2+2")
     if st.button("Hesapla"):
         res = Engines.calculate(domain, params)
         st.success(f"Sonuç: {res}")
-        log(domain, "Hesaplama", res)
+        log(domain, "Hesap", res)
 
 with tab_piyasa:
-    symbol = st.text_input("Sembol (örn: BTC):", value="BTC")
+    symbol = st.text_input("Sembol:", value="BTC")
     if st.button("Fiyat Getir"):
-        res = requests.get(f"https://api.binance.com/api/v3/ticker/price?symbol={symbol.upper()}USDT").json()
-        price = res.get('price', 'Hata')
-        st.success(f"Fiyat: {price}")
-        log("Piyasa", "Fiyat", price)
+        try:
+            price = requests.get(f"https://api.binance.com/api/v3/ticker/price?symbol={symbol.upper()}USDT").json()['price']
+            st.success(f"Fiyat: {price}")
+            log("Piyasa", "Fiyat", price)
+        except: st.error("Hata")
 
 with tab_balik:
     if st.button("Boğaçayı Kontrol"):
-        weather = Engines.get_weather("Antalya")
-        st.info(f"Hava: {weather}")
-        log("Balıkçılık", "Hava", weather)
+        w = Engines.get_weather("Antalya")
+        st.info(f"Hava: {w}")
+        log("Balıkçılık", "Hava", w)
 
 with tab_analiz:
     if st.session_state.audit_log:
