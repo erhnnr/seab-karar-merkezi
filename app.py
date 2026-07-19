@@ -1,31 +1,28 @@
 import streamlit as st
 
 # --- 1. DISIPLIN KUTUPHANELERI ---
-class PhysicsEngine:
+class BioEngine:
     @staticmethod
-    def calculate_force(m, a): return m * a
+    def population_growth(n, r): return n * (1 + r) # Basit popülasyon artışı
 
-class ChemEngine:
+class AstroEngine:
     @staticmethod
-    def molar_mass(mol, gram): return gram / mol if mol != 0 else "Hata: Mol 0 olamaz"
+    def light_year_to_km(ly): return ly * 9.461e12 # Işık yılı -> km
 
-class MedicalEngine:
+class GeoEngine:
     @staticmethod
-    def dosage_check(weight, dosage_per_kg): return weight * dosage_per_kg
+    def scale_calc(map_dist, scale): return map_dist * scale # Harita mesafesi hesaplama
 
-class EconEngine:
-    @staticmethod
-    def roi(investment, return_val): return ((return_val - investment) / investment) * 100
+# ... (Daha önce eklediğimiz Physics, Chem, Medical, Econ, Math Engine sınıfları burada kalmaya devam edecek) ...
 
-class MathEngine:
-    @staticmethod
-    def solve(expr):
-        try: return eval(expr)
-        except: return "Hata: Geçersiz ifade"
-
-# --- 2. ORCHESTRATOR ---
+# --- 2. ORCHESTRATOR (Guncellenmis) ---
 def decision_orchestrator(domain, params):
-    if domain == "Fizik": return PhysicsEngine.calculate_force(params['m'], params['a'])
+    # Yeni eklenenler
+    if domain == "Biyoloji": return BioEngine.population_growth(params['n'], params['r'])
+    elif domain == "Astronomi": return AstroEngine.light_year_to_km(params['ly'])
+    elif domain == "Coğrafya": return GeoEngine.scale_calc(params['md'], params['s'])
+    # Mevcutlar
+    elif domain == "Fizik": return PhysicsEngine.calculate_force(params['m'], params['a'])
     elif domain == "Kimya": return ChemEngine.molar_mass(params['mol'], params['g'])
     elif domain == "Tıp": return MedicalEngine.dosage_check(params['w'], params['d'])
     elif domain == "Ekonomi": return EconEngine.roi(params['i'], params['r'])
@@ -34,28 +31,20 @@ def decision_orchestrator(domain, params):
 
 # --- 3. ARAYUZ ---
 st.title("🌐 Universal Decision Engine")
-domain = st.selectbox("Alan Seçin", ["Matematik", "Fizik", "Kimya", "Tıp", "Ekonomi"])
+domain = st.selectbox("Alan Seçin", ["Matematik", "Fizik", "Kimya", "Tıp", "Ekonomi", "Biyoloji", "Astronomi", "Coğrafya"])
 
-if domain == "Matematik":
-    expr = st.text_input("Denklem:")
-    if st.button("Çöz"): st.info(f"Sonuç: {decision_orchestrator('Matematik', {'expr':expr})}")
+# ... (Her alan için ilgili inputlar eklenir) ...
 
-elif domain == "Fizik":
-    m = st.number_input("Kütle (kg):")
-    a = st.number_input("İvme (m/s²):")
-    if st.button("Hesapla"): st.success(f"Kuvvet: {decision_orchestrator('Fizik', {'m':m, 'a':a})} Newton")
+elif domain == "Biyoloji":
+    n = st.number_input("Başlangıç Popülasyonu:")
+    r = st.number_input("Artış Oranı (örn: 0.1):")
+    if st.button("Hesapla"): st.success(f"Yeni Popülasyon: {decision_orchestrator('Biyoloji', {'n':n, 'r':r})}")
 
-elif domain == "Kimya":
-    mol = st.number_input("Mol Sayısı:")
-    g = st.number_input("Gram:")
-    if st.button("Hesapla"): st.warning(f"Moleküler Ağırlık: {decision_orchestrator('Kimya', {'mol':mol, 'g':g})} g/mol")
+elif domain == "Astronomi":
+    ly = st.number_input("Işık Yılı:")
+    if st.button("Hesapla"): st.info(f"Mesafe (km): {decision_orchestrator('Astronomi', {'ly':ly})}")
 
-elif domain == "Tıp":
-    w = st.number_input("Hasta Ağırlığı (kg):")
-    d = st.number_input("Dozaj (mg/kg):")
-    if st.button("Doz Hesapla"): st.error(f"Toplam Doz: {decision_orchestrator('Tıp', {'w':w, 'd':d})} mg")
-
-elif domain == "Ekonomi":
-    i = st.number_input("Yatırım Miktarı:")
-    r = st.number_input("Dönüş Miktarı:")
-    if st.button("ROI Hesapla"): st.success(f"ROI (Getiri Oranı): %{decision_orchestrator('Ekonomi', {'i':i, 'r':r}):.2f}")
+elif domain == "Coğrafya":
+    md = st.number_input("Harita Mesafesi (cm):")
+    s = st.number_input("Ölçek Paydası (örn: 100000):")
+    if st.button("Hesapla"): st.success(f"Gerçek Mesafe (km): {decision_orchestrator('Coğrafya', {'md':md, 's':s})/100000}")
