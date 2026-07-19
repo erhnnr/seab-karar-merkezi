@@ -1,35 +1,43 @@
 import streamlit as st
 import sympy as sp
+import numpy as np
 
-# --- ARCHITECTURE CORE ---
-def run_math_module():
-    st.subheader("🔢 Sembolik Matematik Motoru")
-    expr = st.text_input("Denklem:", "x**2 - 4")
-    if st.button("Çöz"):
-        try:
-            x = sp.symbols('x')
-            sol = sp.solve(expr, x)
-            st.latex(f"S = {sp.latex(sol)}")
-        except: st.error("Denklem formatını kontrol edin.")
+# --- 1. CORE ENGINE (Sistem Çekirdeği) ---
+class KnowledgeOS:
+    @staticmethod
+    def solve_symbolic(expression):
+        x = sp.symbols('x')
+        return sp.solve(expression, x)
 
-def run_physics_module():
-    st.subheader("⚛️ Fiziksel Dinamikler")
-    # Sabitler modülü (Faz 1.2 için hazırlık)
-    g = 9.81 
-    m = st.number_input("Kütle (kg):", value=1.0)
-    if st.button("Ağırlık Hesapla (G=m*g)"):
-        st.write(f"### Ağırlık: ${m*g:.2f} \, \text{N}$")
+    @staticmethod
+    def calculate_force(m, a):
+        return m * a
 
-# --- MAIN ENGINE (SYSTEM ARCHITECT) ---
-st.set_page_config(page_title="Knowledge OS", layout="wide")
-st.title("🏗️ Knowledge OS: Core Architecture")
+# --- 2. MODÜLER YÖNETİCİ ---
+def render_sidebar():
+    st.sidebar.title("🏗️ Knowledge OS")
+    return st.sidebar.selectbox("Modül Seçin:", ["Analitik Matematik", "Klasik Mekanik", "Tıp (Tasarım Aşamasında)"])
 
-# Sistem Mimarisi: Modül Seçici
-module = st.sidebar.selectbox("Modül Seçiniz:", ["Matematik", "Fizik", "Tıp (Geliştiriliyor)"])
+# --- 3. ARAYÜZ (INTERFACE) ---
+def main():
+    st.set_page_config(page_title="Knowledge OS", layout="wide")
+    module = render_sidebar()
 
-if module == "Matematik":
-    run_math_module()
-elif module == "Fizik":
-    run_physics_module()
-else:
-    st.info("Bu modül Faz 2 kapsamında inşa ediliyor.")
+    if module == "Analitik Matematik":
+        st.header("🔢 Sembolik Matematik Motoru")
+        expr = st.text_input("Denklem girin (örn: x**2 - 9):")
+        if st.button("Çözümle"):
+            result = KnowledgeOS.solve_symbolic(expr)
+            st.latex(f"\\text{{Çözüm kümesi: }} {sp.latex(result)}")
+
+    elif module == "Klasik Mekanik":
+        st.header("⚛️ Fiziksel Dinamikler")
+        col1, col2 = st.columns(2)
+        m = col1.number_input("Kütle (kg):", value=1.0)
+        a = col2.number_input("İvme (m/s²):", value=9.81)
+        if st.button("Kuvvet Hesapla"):
+            f = KnowledgeOS.calculate_force(m, a)
+            st.metric("Hesaplanan Kuvvet", f"{f} N")
+
+if __name__ == "__main__":
+    main()
