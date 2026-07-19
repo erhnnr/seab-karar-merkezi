@@ -5,44 +5,28 @@ import pandas as pd
 # --- CORE ---
 class KnowledgeOS:
     @staticmethod
-    def solve_math(expr_str):
-        x = sp.symbols('x')
-        expr = sp.sympify(expr_str)
-        degree = sp.Poly(expr, x).degree()
-        context = "Doğrusal" if degree == 1 else "Parabolik" if degree == 2 else "Yüksek Dereceli"
-        return sp.solve(expr, x), context
-
-    @staticmethod
-    def calculate_kepler_period(a_au):
-        return a_au**(3/2)
+    def analyze_symptom(symptom):
+        # Akademik sınıflandırma motoru (Basit prototip)
+        db = {
+            "baş ağrısı": "Nöroloji / Dahiliye",
+            "eklem ağrısı": "Ortopedi / Romatoloji",
+            "yorgunluk": "Dahiliye / Endokrinoloji",
+            "öksürük": "Göğüs Hastalıkları"
+        }
+        return db.get(symptom.lower(), "Genel Tıp / Aile Hekimliği")
 
 # --- INTERFACE ---
-st.set_page_config(page_title="Knowledge OS", layout="wide")
-st.title("🏗️ Knowledge OS: Celestial & Math Core")
+st.set_page_config(layout="wide")
+st.title("🏗️ Knowledge OS: Medical Analytics Core")
 
-if "history" not in st.session_state: st.session_state.history = []
+module = st.sidebar.selectbox("Modül Seçin:", ["Analitik Matematik", "Gök Mekaniği", "Sağlık Analitiği"])
 
-module = st.sidebar.selectbox("Modül Seçin:", ["Analitik Matematik", "Gök Mekaniği"])
-
-if module == "Analitik Matematik":
-    st.subheader("Sembolik Çözücü")
-    expr = st.text_input("Denklem:", "x**2 - 4")
+if module == "Sağlık Analitiği":
+    st.subheader("🏥 Belirti Analizcisi")
+    symptom = st.text_input("Belirtinizi yazın (örn: baş ağrısı):")
     if st.button("Analiz Et"):
-        sol, ctx = KnowledgeOS.solve_math(expr)
-        st.session_state.history.append({"Denklem": expr, "Analiz": ctx, "Çözüm": str(sol)})
-        st.success(f"Analiz: {ctx}")
-        st.latex(f"\\text{{Çözüm: }} {sp.latex(sol)}")
+        result = KnowledgeOS.analyze_symptom(symptom)
+        st.success(f"Analiz Sonucu: Bu belirti ile ilgili akademik literatür {result} alanına işaret etmektedir.")
+        st.warning("Not: Bu sistem sadece bilgi amaçlıdır, tıbbi teşhis koymaz.")
 
-elif module == "Gök Mekaniği":
-    st.subheader("🪐 Kepler Yörünge Hesaplayıcı")
-    a = st.number_input("Yarı Büyük Eksen (AU):", value=1.0)
-    if st.button("Periyot Hesapla"):
-        t = KnowledgeOS.calculate_kepler_period(a)
-        st.info(f"Bu yörüngedeki cismin periyodu: {t:.2f} Dünya yılı.")
-        st.latex(f"T = {a}^{{1.5}} = {t:.2f}")
-
-# Loglar
-if st.session_state.history:
-    st.divider()
-    st.subheader("📚 Analiz Geçmişi")
-    st.dataframe(pd.DataFrame(st.session_state.history))
+# ... (Diğer modüller kalacak)
