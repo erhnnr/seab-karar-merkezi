@@ -3,42 +3,39 @@ import sympy as sp
 import pandas as pd
 
 # --- CORE ---
-class KnowledgeOS:
+class HealthEngine:
     @staticmethod
-    def analyze_health(symptom, duration):
-        # Basit bir mantıksal çıkarım motoru
-        risk_map = {
-            "göğüs ağrısı": "ACİL (Kardiyoloji)",
-            "nefes darlığı": "ACİL (Göğüs Hastalıkları)",
-            "baş ağrısı": "Düşük/Orta (Nöroloji)",
-            "yorgunluk": "Düşük (Dahiliye)"
-        }
+    def calculate_risk(symptom, severity, duration):
+        # Parametrik risk hesaplama
+        base_risk = {"göğüs ağrısı": 8, "nefes darlığı": 9, "baş ağrısı": 3, "yorgunluk": 2}
         
-        discipline = risk_map.get(symptom.lower(), "Genel Tıp")
+        symptom_factor = base_risk.get(symptom.lower(), 5)
+        # Risk Skoru Formülü: RS = (Semptom Ağırlığı + Şiddet) * Süre Çarpanı
+        risk_score = (symptom_factor + severity) * (1 + (duration * 0.1))
         
-        # Aciliyet çıkarımı
-        if "ACİL" in discipline or duration > 3:
-            urgency = "⚠️ YÜKSEK ACİLİYET - En yakın sağlık kuruluşuna başvurun."
+        if risk_score > 15:
+            verdict = "🔴 YÜKSEK RİSK: Uzman Müdahalesi Gerekli."
+        elif risk_score > 8:
+            verdict = "🟡 ORTA RİSK: Tetkik Edilmesi Önerilir."
         else:
-            urgency = "ℹ️ Rutin Kontrol - Bir uzmanla görüşmeniz önerilir."
+            verdict = "🟢 DÜŞÜK RİSK: İzlemeye Alınabilir."
             
-        return discipline, urgency
+        return round(risk_score, 2), verdict
 
 # --- INTERFACE ---
 st.set_page_config(layout="wide")
-st.title("🏗️ Knowledge OS: Clinical Inference Engine")
+st.title("🏗️ Knowledge OS: Advanced Inference Engine")
 
 module = st.sidebar.selectbox("Modül:", ["Analitik Matematik", "Gök Mekaniği", "Sağlık Analitiği"])
 
 if module == "Sağlık Analitiği":
-    st.subheader("🏥 Akıllı Belirti Analizcisi")
-    symptom = st.text_input("Belirti (örn: göğüs ağrısı):")
-    duration = st.number_input("Süre (Gün):", min_value=0, value=1)
+    st.subheader("🏥 Parametrik Sağlık Analizi")
+    symptom = st.text_input("Belirti:")
+    severity = st.slider("Şiddet (1-10):", 1, 10, 5)
+    duration = st.number_input("Süre (Gün):", 0, 365, 1)
     
-    if st.button("Analiz Et"):
-        disc, urg = KnowledgeOS.analyze_health(symptom, duration)
-        st.success(f"Disiplin: {disc}")
-        st.markdown(f"### {urg}")
-        st.caption("Not: Bu analiz akademik çıkarım motoru ile yapılmıştır, teşhis değildir.")
-
-# ... (Diğer modüllerin kalacak şekilde)
+    if st.button("Risk Analizi Yap"):
+        score, verdict = HealthEngine.calculate_risk(symptom, severity, duration)
+        st.metric("Hesaplanan Risk Skoru", score)
+        st.subheader(verdict)
+        st.caption("Not: Bu bir akademik modeldir, teşhis değildir.")
