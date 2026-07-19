@@ -7,7 +7,9 @@ class PhysicsEngine:
 
 class ChemEngine:
     @staticmethod
-    def molar_mass(mol, gram): return gram / mol if mol != 0 else 0
+    def molar_mass(mol, gram): 
+        if mol <= 0 or gram <= 0: return "Lütfen geçerli değerler girin." # Sıfır kontrolü
+        return gram / mol
 
 class MedicalEngine:
     @staticmethod
