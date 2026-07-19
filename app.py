@@ -1,29 +1,28 @@
-# --- 1. ENGINE SINIFLARI (GÜNCEL MANTIK) ---
-class Engines:
-    @staticmethod
-    def solve(domain, params):
-        if domain == "Matematik":
-            try: return eval(params)
-            except: return "Matematiksel hata."
-        
-        elif domain == "Fizik":
-            # Örnek: F = m * a hesaplaması (m,a formatında girilirse)
-            try:
-                m, a = map(float, params.split(','))
-                return f"Kuvvet: {m * a} N"
-            except: return "Girdi formatı 'kütle,ivme' olmalı."
+import streamlit as st
+import pandas as pd
 
-        elif domain == "Tıp":
-            # Tıbbi notlara göre basit kategorizasyon
-            if "ağrı" in params.lower(): return "Not: Ağrı kaydı oluşturuldu, takip edilecek."
-            return f"Tıbbi not kayıt altına alındı."
+# --- 1. AYARLAR VE LOG ---
+st.set_page_config(layout="wide")
+if "audit_log" not in st.session_state: st.session_state.audit_log = []
 
-        elif domain == "Kimya":
-            return f"Kimyasal analiz: {params} verisi işleniyor..."
-            
-        elif domain == "Ekonomi":
-            # Döviz hesaplaması örneği
-            try: return f"Tahmini TRY karşılığı: {float(params) * 33.0} TL" # Basit kur simülasyonu
-            except: return "Sayısal değer girin."
+# --- 2. ARAYUZ ---
+st.title("🌐 Universal Decision Engine")
 
-        return f"{domain} işlemi tamamlandı."
+# Basit Tab Yapısı
+tab1, tab2 = st.tabs(["🔢 İşlemler", "📊 Analiz"])
+
+with tab1:
+    alan = st.selectbox("Alan Seç:", ["Matematik", "Fizik", "Tıp"])
+    girdi = st.text_input("Veri girişi:")
+    
+    if st.button("Kaydet"):
+        st.session_state.audit_log.append({"Alan": alan, "İşlem": girdi})
+        st.success("Veri kaydedildi!")
+
+with tab2:
+    if st.session_state.audit_log:
+        df = pd.DataFrame(st.session_state.audit_log)
+        st.bar_chart(df['Alan'].value_counts())
+        st.dataframe(df)
+    else:
+        st.write("Henüz veri yok.")
