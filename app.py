@@ -3,60 +3,51 @@ import pandas as pd
 import requests
 from datetime import datetime
 
-# --- 1. ENGINE SINIFLARI ---
-class EconEngine:
+# --- 1. MODÜLER ENGINELER ---
+class DataEngine:
     @staticmethod
-    def get_live_rate(base, target):
-        url = f"https://api.exchangerate-api.com/v4/latest/{base}"
+    def get_weather(city): # Balıkçılık için
+        api_key = "05391d4e078b4081c7f130421261907" # Örnek ücretsiz API
+        url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=metric"
         try:
-            response = requests.get(url).json()
-            return response['rates'].get(target.upper(), 0)
-        except: return 0
-    @staticmethod
-    def roi(i, r): return ((r - i) / i) * 100 if i != 0 else 0
+            res = requests.get(url).json()
+            return f"Sıcaklık: {res['main']['temp']}°C, Durum: {res['weather'][0]['description']}"
+        except: return "Hava verisi alınamadı."
 
-class PhysicsEngine:
     @staticmethod
-    def calculate_force(m, a): return m * a
+    def get_crypto_price(symbol): # Algoritmik takip için
+        url = f"https://api.binance.com/api/v3/ticker/price?symbol={symbol}USDT"
+        try:
+            res = requests.get(url).json()
+            return res['price']
+        except: return "Fiyat alınamadı."
 
-# --- 2. ORCHESTRATOR VE LOG ---
+# --- 2. ORCHESTRATOR & ANALIZ ---
 if "audit_log" not in st.session_state: st.session_state.audit_log = []
 
-def log_and_solve(domain, op, params, func, *args):
-    result = func(*args)
-    log_entry = {"Zaman": datetime.now().strftime("%H:%M:%S"), "Disiplin": domain, "İşlem": op, "Sonuç": str(result)}
-    st.session_state.audit_log.append(log_entry)
-    return result
+def log(domain, op, result):
+    st.session_state.audit_log.append({"Zaman": datetime.now().strftime("%H:%M:%S"), "Alan": domain, "İşlem": op, "Sonuç": str(result)})
 
-# --- 3. ARAYUZ ---
+# --- 3. GÜNCEL ARAYÜZ ---
 st.title("🌐 Universal Decision Engine")
-domain = st.selectbox("Alan Seçin", ["Fizik", "Ekonomi"])
+tab_analiz, tab_piyasa, tab_balik = st.tabs(["🔢 Genel Analiz", "📈 Algoritmik/Piyasa", "🎣 Balıkçılık (Boğaçayı)"])
 
-if domain == "Fizik":
-    m = st.number_input("Kütle:")
-    a = st.number_input("İvme:")
-    if st.button("Hesapla"):
-        res = log_and_solve("Fizik", "Kuvvet", f"m:{m},a:{a}", PhysicsEngine.calculate_force, m, a)
-        st.success(f"Kuvvet: {res}")
+with tab_piyasa:
+    symbol = st.text_input("Kripto Sembolü (örn: BTC):", value="BTC")
+    if st.button("Anlık Fiyat"):
+        price = DataEngine.get_crypto_price(symbol.upper())
+        st.success(f"{symbol} Fiyatı: {price} USDT")
+        log("Piyasa", "Fiyat Takibi", price)
 
-elif domain == "Ekonomi":
-    st.subheader("Canlı Kur")
-    base = st.text_input("Baz Birim:", value="USD")
-    target = st.text_input("Hedef Birim:", value="TRY")
-    if st.button("Kuru Getir"):
-        rate = EconEngine.get_live_rate(base, target)
-        st.info(f"Anlık Kur: {rate}")
-    i = st.number_input("Yatırım:")
-    r = st.number_input("Dönüş:")
-    if st.button("ROI Hesapla"):
-        res = log_and_solve("Ekonomi", "ROI", f"i:{i},r:{r}", EconEngine.roi, i, r)
-        st.success(f"ROI: %{res:.2f}")
+with tab_balik:
+    if st.button("Boğaçayı Hava Durumu"):
+        weather = DataEngine.get_weather("Antalya")
+        st.info(f"Boğaçayı Analizi: {weather}")
+        log("Balıkçılık", "Hava Kontrolü", weather)
 
-# --- 4. ANALIZ RAPORU (YENI) ---
-with st.expander("📊 Operasyonel Analiz Raporu"):
+with tab_analiz:
+    st.subheader("İşlem Geçmişi")
     if st.session_state.audit_log:
         df = pd.DataFrame(st.session_state.audit_log)
-        st.write("İşlem Yoğunluğu:")
-        st.bar_chart(df['Disiplin'].value_counts())
-    else:
-        st.info("Analiz için veri bekleniyor.")
+        st.dataframe(df)
+        st.bar_chart(df['Alan'].value_counts())
