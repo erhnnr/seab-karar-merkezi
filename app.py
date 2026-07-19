@@ -1,6 +1,6 @@
 import streamlit as st
 
-# --- 1. DISIPLIN KUTUPHANELERI (Motorlar) ---
+# --- 1. DISIPLIN KUTUPHANELERI ---
 class PhysicsEngine:
     @staticmethod
     def calculate_force(mass, acceleration):
@@ -10,11 +10,19 @@ class MathEngine:
     @staticmethod
     def solve_complex(expression):
         try:
+            # Girdiyi temizle
+            if not expression: return "Lütfen bir denklem girin."
+            # Sadece güvenli karakterlere izin ver
+            allowed_chars = "0123456789+-*/(). "
+            if any(char not in allowed_chars for char in expression):
+                return "Hata: Sadece matematiksel karakterler kullanın."
             return eval(expression)
+        except ZeroDivisionError:
+            return "Hata: Sıfıra bölme yapılamaz."
         except:
-            return "Geçersiz Denklem"
+            return "Hata: Geçersiz ifade."
 
-# --- 2. ORCHESTRATOR (Merkezi Yönetici) ---
+# --- 2. ORCHESTRATOR ---
 def decision_orchestrator(domain, params):
     if domain == "Fizik":
         return PhysicsEngine.calculate_force(params['m'], params['a'])
@@ -38,4 +46,5 @@ if domain == "Fizik":
 elif domain == "Matematik":
     expr = st.text_input("Denklem Girin (örn: 25 * 4 / 2):")
     if st.button("Çöz"):
-        st.info(f"Sonuç: {decision_orchestrator('Matematik', {'expr':expr})}")
+        sonuc = decision_orchestrator('Matematik', {'expr':expr})
+        st.info(f"Sonuç: {sonuc}")
