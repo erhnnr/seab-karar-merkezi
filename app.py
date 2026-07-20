@@ -1,38 +1,46 @@
 import streamlit as st
-import pandas as pd
-import datetime
+import sympy as sp
 
-# --- MANTIK KATMANI (Engine) ---
-class DecisionEngine:
-    def __init__(self):
-        self.name = "Universal Core V1"
+# --- EVRENSEL DETERMINISTIC ENGINE ---
+class DeterministicEngine:
+    @staticmethod
+    def calculate(discipline, data):
+        try:
+            if discipline == "Matematik":
+                return f"Sonuç: {sp.sympify(data)}"
+            
+            elif discipline == "Fizik (Basınç)":
+                # P = F / A (Kuvvet / Alan)
+                f, a = map(float, data.split(','))
+                return f"Basınç: {f / a:.2f} Pascal"
+            
+            elif discipline == "Coğrafya (Koordinat Analizi)":
+                # Basit bir koordinat mesafe/analiz öncülü
+                lat, lon = map(float, data.split(','))
+                return f"Konum: {lat}°N, {lon}°E bölgesindesiniz."
+            
+            elif discipline == "Astronomi":
+                a = float(data)
+                return f"Periyot: {a**1.5:.2f} Yıl (Kepler)"
+                
+            return "Hatalı veri girişi."
+        except Exception as e:
+            return f"Hata: {e} (Verileri doğru formatta girin)"
 
-    def analyze(self, data):
-        # BURASI senin algoritmalarının olacağı yer.
-        # İlk prototip: Gelen veriyi basitçe analiz edip "Karar" üreten bir yapı.
-        if "risk" in data.lower():
-            return "Yüksek Risk: Yatırımı durdur."
-        else:
-            return "Kararlı: Veri normal aralıkta."
+# --- ARAYÜZ ---
+st.set_page_config(layout="wide")
+st.title("⚖️ Universal Deterministic Engine")
 
-# --- ARAYÜZ KATMANI (UI) ---
-engine = DecisionEngine()
+discipline = st.sidebar.selectbox("Disiplin Seç:", 
+    ["Matematik", "Fizik (Basınç)", "Coğrafya (Koordinat Analizi)", "Astronomi"])
 
-st.set_page_config(page_title="Karar Motoru", layout="centered")
-st.title("🧠 Universal Decision Engine")
+# Dinamik Veri Girişi Talimatı
+if discipline == "Fizik (Basınç)":
+    input_text = st.text_input("Giriş (Kuvvet, Alan):", "100, 2")
+elif discipline == "Coğrafya (Koordinat Analizi)":
+    input_text = st.text_input("Giriş (Enlem, Boylam):", "36.88, 30.70")
+else:
+    input_text = st.text_input("Giriş Değeri:", "1.0")
 
-st.sidebar.header("Motor Ayarları")
-st.info(f"Sistem: {engine.name}")
-
-user_input = st.text_input("Analiz edilecek veriyi veya durumu girin:")
-
-if st.button("Karar Üret"):
-    if user_input:
-        karar = engine.analyze(user_input)
-        st.subheader("Karar:")
-        st.success(karar)
-        
-        # Loglama: Kararı hafızaya al
-        st.session_state.log = {"Zaman": datetime.datetime.now(), "Girdi": user_input, "Karar": karar}
-    else:
-        st.warning("Lütfen bir veri girişi yapın.")
+if st.button("Analiz Et"):
+    st.success(DeterministicEngine.calculate(discipline, input_text))
